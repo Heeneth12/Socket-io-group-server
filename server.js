@@ -11,7 +11,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "https://heeneth12.github.io/Socket-io-chatting-app",
     methods: ["GET", "post"],
   },
 });

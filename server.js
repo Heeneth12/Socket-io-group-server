@@ -11,7 +11,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "https://heeneth12.github.io/Socket-io-chatting-app",
+    origin: "https://chat-io-seven.vercel.app",
     methods: ["GET", "post"],
   },
 });

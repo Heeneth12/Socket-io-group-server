@@ -3,37 +3,62 @@ const app = express();
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
-const { Socket } = require("dgram");
-const { send } = require("process");
+
 app.use(cors());
 
 const server = http.createServer(app);
-
 const io = new Server(server, {
   cors: {
     origin: "https://chat-io-seven.vercel.app",
-    methods: ["GET", "post"],
+    methods: ["GET", "POST"],
   },
 });
 
-io.on("connection", (socket) => {
-  console.log(`user connected ${socket.id}`);
+const waitingUsers = []; // Store users waiting to be paired
 
-  socket.on("join_room", (data) => {
-    socket.join(data);
+io.on("connection", (socket) => {
+  console.log(`User connected: ${socket.id}`);
+
+  socket.on("join_room", (room) => {
+    if (!room) {
+      // If no room is specified, generate a random room ID
+      room = generateRandomRoomName();
+    }
+
+    const partner = waitingUsers.pop(); // Get a waiting user, if available
+
+    if (partner) {
+      // If a waiting user is available, pair the users in the same room
+      socket.join(room);
+      partner.join(room);
+      io.to(room).emit("user_paired", { room });
+    } else {
+      // If no waiting user, add the current user to the waiting list
+      waitingUsers.push(socket);
+    }
   });
 
+  // Handle sending messages
   socket.on("send_message", (data) => {
+    console.log(data);
     socket.to(data.room).emit("receive_message", data);
   });
 
   socket.on("disconnect", () => {
-    console.log(`user disconnected ${socket.id}`);
-    // Perform any necessary cleanup or logic here
-    io.emit("user_disconnected", { message: "disconnected" });
+    console.log(`User disconnected: ${socket.id}`);
+    const index = waitingUsers.indexOf(socket);
+    if (index !== -1) {
+      // Remove user from the waiting list if they disconnect
+      waitingUsers.splice(index, 1);
+    }
+    io.emit("user_disconnected", { message: " user disconnected" });
   });
 });
 
 server.listen(9000, () => {
-  console.log("server is running in 9000");
+  console.log("Server is running on port 4444");
 });
+
+function generateRandomRoomName() {
+  return Math.random().toString(36).substring(7);
+}

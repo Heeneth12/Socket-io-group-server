@@ -9,7 +9,7 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://chat-io-seven.vercel.app",
+    origin: "https://findme-g66u.vercel.app",
     methods: ["GET", "POST"],
   },
 });
